@@ -150,7 +150,13 @@
     <ClCompile Include="src\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Primitives.h" />
     <ClInclude Include="src\ShaderProgram.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shaders\NDC.vert" />
+    <None Include="src\Shaders\PostProcess.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

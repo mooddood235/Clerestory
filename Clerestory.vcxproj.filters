@@ -29,5 +29,15 @@
     <ClInclude Include="src\ShaderProgram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Primitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Shaders\NDC.vert" />
+    <None Include="src\Shaders\PostProcess.frag" />
   </ItemGroup>
 </Project>

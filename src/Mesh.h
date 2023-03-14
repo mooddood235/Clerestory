@@ -5,7 +5,9 @@
 
 class Mesh {
 public:
-	Mesh(std::vector<glm::vec3>& verts, std::vector<unsigned int>& indices) {
+	Mesh(const std::vector<glm::vec3>& verts, const std::vector<unsigned int>& indices) {
+		indicesSize = indices.size();
+
 		glGenVertexArrays(1, &vao);
 		glGenBuffers(1, &vbo);
 		glGenBuffers(1, &ebo);
@@ -24,8 +26,15 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
-private:
+	void Draw() {
+		glBindVertexArray(vao);
+		glDrawElements(GL_TRIANGLES, indicesSize, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+protected:
 	unsigned int vao;
 	unsigned int vbo;
 	unsigned int ebo;
+
+	unsigned int indicesSize;
 };

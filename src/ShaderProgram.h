@@ -11,10 +11,10 @@
 
 class ShaderProgram {
 public:
-	ShaderProgram(std::string& vertPath, std::string& fragPath) {
+	ShaderProgram(const const std::string& vertPath, const const std::string& fragPath) {
 		LinkProgram(CompileShader(vertPath, GL_VERTEX_SHADER), CompileShader(fragPath, GL_FRAGMENT_SHADER));
 	}
-	ShaderProgram(std::string& computePath) {
+	ShaderProgram(const const std::string& computePath) {
 		LinkProgram(CompileShader(computePath, GL_COMPUTE_SHADER));
 	}
 	void Use() {
@@ -23,42 +23,42 @@ public:
 	static void Unuse() {
 		glUseProgram(0);
 	}
-	void SetMat4(std::string& uniformName, glm::mat4 value) {
+	void SetMat4(const std::string& uniformName, glm::mat4 value) {
 		unsigned int location = glGetUniformLocation(shaderProgramID, uniformName.c_str());
 		glProgramUniformMatrix4fv(shaderProgramID, location, 1, GL_FALSE, glm::value_ptr(value));
 	}
-	void SetVec3(std::string& uniformName, glm::vec3 value) {
+	void SetVec3(const std::string& uniformName, glm::vec3 value) {
 		unsigned int location = glGetUniformLocation(shaderProgramID, uniformName.c_str());
 		glProgramUniform3fv(shaderProgramID, location, 1, glm::value_ptr(value));
 	}
-	void SetFloat(std::string& uniformName, float value) {
+	void SetFloat(const std::string& uniformName, float value) {
 		unsigned int location = glGetUniformLocation(shaderProgramID, uniformName.c_str());
 		glProgramUniform1f(shaderProgramID, location, value);
 	}
-	void SetDouble(std::string& uniformName, double value) {
+	void SetDouble(const std::string& uniformName, double value) {
 		unsigned int location = glGetUniformLocation(shaderProgramID, uniformName.c_str());
 		glProgramUniform1d(shaderProgramID, location, value);
 	}
-	void SetInt(std::string& uniformName, int value) {
+	void SetInt(const std::string& uniformName, int value) {
 		unsigned int location = glGetUniformLocation(shaderProgramID, uniformName.c_str());
 		glProgramUniform1i(shaderProgramID, location, value);
 	}
-	void SetUnsignedInt(std::string& uniformName, unsigned int value) {
+	void SetUnsignedInt(const std::string& uniformName, unsigned int value) {
 		unsigned int location = glGetUniformLocation(shaderProgramID, uniformName.c_str());
 		glProgramUniform1ui(shaderProgramID, location, value);
 	}
-	void BindUniformBlock(std::string& blockName, unsigned int bind) {
+	void BindUniformBlock(const std::string& blockName, unsigned int bind) {
 		unsigned int blockIndex = glGetUniformBlockIndex(shaderProgramID, blockName.c_str());
 		glUniformBlockBinding(shaderProgramID, blockIndex, bind);
 	}
-	void BindStorageBlock(std::string& blockName, unsigned int bind) {
+	void BindStorageBlock(const std::string& blockName, unsigned int bind) {
 		unsigned int blockIndex = glGetProgramResourceIndex(shaderProgramID, GL_SHADER_STORAGE_BLOCK, blockName.c_str());
 		glShaderStorageBlockBinding(shaderProgramID, blockIndex, bind);
 	}
 private:
 	unsigned int shaderProgramID;
 private:
-	unsigned int CompileShader(std::string& filePath, GLenum type) {
+	unsigned int CompileShader(const std::string& filePath, GLenum type) {
 		if (!(type == GL_VERTEX_SHADER || type == GL_FRAGMENT_SHADER || type == GL_COMPUTE_SHADER)) {
 			std::cout << "ERROR: Cannot compile shader of type <" << std::to_string(type) << ">" << std::endl;
 			glfwTerminate();
@@ -74,7 +74,7 @@ private:
 			exit(-1);
 		}
 		stringstream << file.rdbuf();
-		std::string shaderContents = stringstream.str();
+		const std::string shaderContents = stringstream.str();
 
 		unsigned int shader = glCreateShader(type);
 		const char* shaderContentsCString = shaderContents.c_str(); // glShaderSource() requires a const double pointer thingy.
@@ -109,7 +109,7 @@ private:
 
 		glDeleteShader(computeShader);
 	}
-	void ShaderCompilationErrorCheck(unsigned int shader, std::string filePath) {
+	void ShaderCompilationErrorCheck(unsigned int shader, const std::string filePath) {
 		int success;
 
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);

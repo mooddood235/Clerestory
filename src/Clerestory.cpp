@@ -2,6 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "ShaderProgram.h"
+#include "Mesh.h"
+#include "Primitives.h"
 
 GLFWwindow* InitGLFW();
 void InitGlAD();
@@ -24,11 +26,18 @@ int main()
 
     glEnable(GL_FRAMEBUFFER_SRGB);
 
+    ShaderProgram postProcessShader = ShaderProgram("src/Shaders/NDC.vert", "src/Shaders/PostProcess.frag");
+    Mesh quad = Mesh(QUAD_VERTS, QUAD_INDICES);
+
     while (!glfwWindowShouldClose(window)) {
         glfwSwapBuffers(window);
         glfwPollEvents();
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+
+        postProcessShader.Use();
+        quad.Draw();
+        ShaderProgram::Unuse();
     }
 
     return 0;
