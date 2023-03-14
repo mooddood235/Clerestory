@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "ShaderProgram.h"
 
 GLFWwindow* InitGLFW();
 void InitGlAD();
