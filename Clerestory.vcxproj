@@ -153,6 +153,7 @@
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\Primitives.h" />
     <ClInclude Include="src\ShaderProgram.h" />
+    <ClInclude Include="src\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\NDC.vert" />
