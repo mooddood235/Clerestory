@@ -69,6 +69,9 @@ public:
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	void BindImageTexture(unsigned int bindUnit, GLenum access) {
+		glBindImageTexture(bindUnit, textureID, 0, GL_FALSE, 0, access, GL_RGB);
+	}
 private:
 	unsigned int textureID;
 
