@@ -38,9 +38,13 @@
     <ClInclude Include="src\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\WindowInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\NDC.vert" />
     <None Include="src\Shaders\PostProcess.frag" />
+    <None Include="src\Shaders\Render.comp" />
   </ItemGroup>
 </Project>

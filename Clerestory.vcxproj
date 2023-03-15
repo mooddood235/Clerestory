@@ -154,10 +154,12 @@
     <ClInclude Include="src\Primitives.h" />
     <ClInclude Include="src\ShaderProgram.h" />
     <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\WindowInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Shaders\NDC.vert" />
     <None Include="src\Shaders\PostProcess.frag" />
+    <None Include="src\Shaders\Render.comp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

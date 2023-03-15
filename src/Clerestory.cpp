@@ -1,11 +1,14 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include "ShaderProgram.h"
 #include "Mesh.h"
 #include "Primitives.h"
+#include "WindowInfo.h"
+#include "Texture.h"
 
-GLFWwindow* InitGLFW();
+WindowInfo InitGLFW();
 void InitGlAD();
 void APIENTRY glDebugOutput(GLenum source,
     GLenum type,
@@ -17,7 +20,7 @@ void APIENTRY glDebugOutput(GLenum source,
 
 int main()
 {
-    GLFWwindow* window = InitGLFW();
+    WindowInfo windowInfo = InitGLFW();
     InitGlAD();
 
     glDebugMessageCallback(glDebugOutput, nullptr);
@@ -25,15 +28,31 @@ int main()
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
     glEnable(GL_FRAMEBUFFER_SRGB);
-
-    ShaderProgram postProcessShader = ShaderProgram("src/Shaders/NDC.vert", "src/Shaders/PostProcess.frag");
+    // ---------------------------------
     Mesh quad = Mesh(QUAD_VERTS, QUAD_INDICES);
+    // ---------------------------------
+    ShaderProgram postProcessShader = ShaderProgram("src/Shaders/NDC.vert", "src/Shaders/PostProcess.frag");
+    ShaderProgram renderShader = ShaderProgram("src/Shaders/Render.comp");
+    // ---------------------------------
+    Texture renderTexture = Texture(windowInfo.width, windowInfo.height);
 
-    while (!glfwWindowShouldClose(window)) {
-        glfwSwapBuffers(window);
+    renderTexture.BindImageTexture(0, GL_WRITE_ONLY);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderTexture.GetID());
+
+    postProcessShader.SetInt("renderTexture", 0);
+    // ---------------------------------
+
+    while (!glfwWindowShouldClose(windowInfo.window)) {
+        glfwSwapBuffers(windowInfo.window);
         glfwPollEvents();
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+        if (glfwGetKey(windowInfo.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(windowInfo.window, true);
+
+        renderShader.Use();
+        glDispatchCompute(glm::ceil(windowInfo.width / 8), glm::ceil(windowInfo.height / 4), 1);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         postProcessShader.Use();
         quad.Draw();
@@ -43,14 +62,14 @@ int main()
     return 0;
 }
 
-GLFWwindow* InitGLFW() {
+WindowInfo InitGLFW() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(1920, 1080, "Clerestory", NULL, NULL);
-
+    
     if (!window) {
         std::cout << "ERROR: Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -58,7 +77,7 @@ GLFWwindow* InitGLFW() {
     }
     glfwMakeContextCurrent(window);
 
-    return window;
+    return WindowInfo(window, 1920, 1080);
 }
 void InitGlAD() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {

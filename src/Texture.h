@@ -22,8 +22,6 @@ public:
 			glfwTerminate();
 			exit(-1);
 		}
-		this->width = width;
-		this->height = height;
 
 		GLenum inFormat = GL_RED, outFormat = GL_RED;
 
@@ -37,6 +35,10 @@ public:
 			else inFormat = GL_RGBA;
 			outFormat = GL_RGBA;
 		}
+
+		this->width = width;
+		this->height = height;
+		this->inFormat = inFormat;
 
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -55,12 +57,13 @@ public:
 	Texture(unsigned int width, unsigned int height) {
 		this->width = width;
 		this->height = height;
+		inFormat = GL_RGBA32F;
 
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
-		std::vector<unsigned char> emptyData(width * height * 3, 0);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, emptyData.data());
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -69,12 +72,17 @@ public:
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	unsigned int GetID() {
+		return textureID;
+	}
 	void BindImageTexture(unsigned int bindUnit, GLenum access) {
-		glBindImageTexture(bindUnit, textureID, 0, GL_FALSE, 0, access, GL_RGB);
+		glBindImageTexture(bindUnit, textureID, 0, GL_FALSE, 0, access, inFormat);
 	}
 private:
 	unsigned int textureID;
 
 	unsigned int width;
 	unsigned int height;
+
+	GLenum inFormat;
 };
