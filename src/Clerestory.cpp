@@ -35,13 +35,18 @@ int main()
     ShaderProgram renderShader = ShaderProgram("src/Shaders/Render.comp");
     // ---------------------------------
     Texture renderTexture = Texture(windowInfo.width, windowInfo.height);
+    Texture environmentMap = Texture("HDRIs/puresky.hdr");
 
     renderTexture.BindImageTexture(0, GL_WRITE_ONLY);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, renderTexture.GetID());
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, environmentMap.GetID());
+
     postProcessShader.SetInt("renderTexture", 0);
+    renderShader.SetInt("environmentMap", 1);
     // ---------------------------------
 
     while (!glfwWindowShouldClose(windowInfo.window)) {

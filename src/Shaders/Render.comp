@@ -1,11 +1,33 @@
 #version 460 core
 
+struct Ray{
+	vec3 origin;
+	vec3 dir;
+};
+
+vec3 SampleEnvironmentMap(vec3 direction);
+
 layout(local_size_x = 8, local_size_y = 4) in;
 layout(rgba32f, binding = 0) uniform image2D outputImage;
+
+uniform sampler2D environmentMap;
 
 void main(){
 	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
 	vec2 uv = (vec2(gl_GlobalInvocationID) + 0.5) / vec2(gl_NumWorkGroups * gl_WorkGroupSize);
-	
-	imageStore(outputImage, pixel, vec4(uv, 0.0, 1.0));
+
+	vec4 environmentColor = texture(environmentMap, uv);
+
+	imageStore(outputImage, pixel, environmentColor);
 }
+
+vec3 SampleEnvironmentMap(vec3 direction)
+{
+	const vec2 invAtan = vec2(0.1591, 0.3183);
+
+    vec2 uv = vec2(atan(direction.z, direction.x), asin(direction.y));
+    uv *= invAtan;
+    uv += 0.5;
+    
+	return texture(environmentMap, uv).rgb;
+};
