@@ -49,11 +49,15 @@ int main()
     renderShader.SetInt("environmentMap", 1);
     // ---------------------------------
 
-    while (!glfwWindowShouldClose(windowInfo.window)) {
-        glfwSwapBuffers(windowInfo.window);
-        glfwPollEvents();
+    float lastTime = 0.0f;
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    while (!glfwWindowShouldClose(windowInfo.window)) {
+        // Input
         if (glfwGetKey(windowInfo.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(windowInfo.window, true);
+        
+        // Render
+        glClear(GL_COLOR_BUFFER_BIT);
 
         renderShader.Use();
         glDispatchCompute(glm::ceil(windowInfo.width / 8), glm::ceil(windowInfo.height / 4), 1);
@@ -62,6 +66,10 @@ int main()
         postProcessShader.Use();
         quad.Draw();
         ShaderProgram::Unuse();
+
+        // Poll events and swap buffers
+        glfwPollEvents();
+        glfwSwapBuffers(windowInfo.window);
     }
 
     return 0;
