@@ -24,6 +24,9 @@ public:
 		this->focalLength = focalLength;
 		yFOVInDegrees = 2.0f * glm::atan((float)windowInfo.width / (2.0f * focalLength));
 	}
+	float GetFocalLength() {
+		return focalLength;
+	}
 	void ProcessInput(WindowInfo windowInfo, float deltaTime) {
 		GLFWwindow* window = windowInfo.window;
 

@@ -1,5 +1,14 @@
 #version 460 core
 
+struct Camera{
+	vec3 pos;
+
+	vec3 xAxis;
+	vec3 yAxis;
+	vec3 zAxis;
+
+	float focalLength;
+};
 struct Ray{
 	vec3 origin;
 	vec3 dir;
@@ -12,13 +21,23 @@ layout(rgba32f, binding = 0) uniform image2D outputImage;
 
 uniform sampler2D environmentMap;
 
+uniform Camera camera;
+
 void main(){
-	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-	vec2 uv = (vec2(gl_GlobalInvocationID) + 0.5) / vec2(gl_NumWorkGroups * gl_WorkGroupSize);
+	const ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	const vec2 outputImageDims = imageSize(outputImage);
+	const vec2 uv = (vec2(gl_GlobalInvocationID) + 0.5) / outputImageDims;
 
-	vec4 environmentColor = texture(environmentMap, uv);
+	vec3 worldUV = camera.pos + 
+	-camera.zAxis * camera.focalLength + 
+	camera.xAxis * (outputImageDims.x / 2.0) * (uv.x * 2.0 - 1.0) +
+	camera.yAxis * (outputImageDims.y / 2.0) * (uv.y * 2.0 - 1.0);
 
-	imageStore(outputImage, pixel, environmentColor);
+	Ray ray = Ray(camera.pos, normalize(worldUV - camera.pos));
+
+	vec3 environmentColor = SampleEnvironmentMap(ray.dir);
+
+	imageStore(outputImage, pixel, vec4(environmentColor, 1.0));
 }
 
 vec3 SampleEnvironmentMap(vec3 direction)

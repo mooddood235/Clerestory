@@ -7,6 +7,7 @@
 #include "Primitives.h"
 #include "WindowInfo.h"
 #include "Texture.h"
+#include "Camera.h"
 
 WindowInfo InitGLFW();
 void InitGlAD();
@@ -35,7 +36,7 @@ int main()
     ShaderProgram renderShader = ShaderProgram("src/Shaders/Render.comp");
     // ---------------------------------
     Texture renderTexture = Texture(windowInfo.width, windowInfo.height);
-    Texture environmentMap = Texture("HDRIs/puresky.hdr");
+    Texture environmentMap = Texture("HDRIs/Shelter.hdr");
 
     renderTexture.BindImageTexture(0, GL_WRITE_ONLY);
 
@@ -48,16 +49,32 @@ int main()
     postProcessShader.SetInt("renderTexture", 0);
     renderShader.SetInt("environmentMap", 1);
     // ---------------------------------
-
+    Camera camera = Camera(45.0f, windowInfo);
+    // ---------------------------------
     float lastTime = 0.0f;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    // ---------------------------------
 
     while (!glfwWindowShouldClose(windowInfo.window)) {
+        // Calculate delta time
+        float currTime = glfwGetTime();
+        float deltaTime = currTime - lastTime;
+        lastTime = currTime;
+
         // Input
         if (glfwGetKey(windowInfo.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(windowInfo.window, true);
-        
+        camera.ProcessInput(windowInfo, deltaTime);
+
         // Render
         glClear(GL_COLOR_BUFFER_BIT);
+        
+        renderShader.SetVec3("camera.pos", camera.GetPosition());
+
+        renderShader.SetVec3("camera.xAxis", camera.GetXAxis());
+        renderShader.SetVec3("camera.yAxis", camera.GetYAxis());
+        renderShader.SetVec3("camera.zAxis", camera.GetZAxis());
+
+        renderShader.SetFloat("camera.focalLength", camera.GetFocalLength());
 
         renderShader.Use();
         glDispatchCompute(glm::ceil(windowInfo.width / 8), glm::ceil(windowInfo.height / 4), 1);
@@ -89,6 +106,7 @@ WindowInfo InitGLFW() {
         exit(-1);
     }
     glfwMakeContextCurrent(window);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     return WindowInfo(window, 1920, 1080);
 }
