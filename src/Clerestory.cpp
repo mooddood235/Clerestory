@@ -36,21 +36,24 @@ int main()
     ShaderProgram postProcessShader = ShaderProgram("src/Shaders/NDC.vert", "src/Shaders/PostProcess.frag");
     ShaderProgram renderShader = ShaderProgram("src/Shaders/Render.comp");
     // ---------------------------------
-    Texture renderTexture = Texture(windowInfo.width, windowInfo.height);
+    Texture cumulativeRenderTexture = Texture(windowInfo.width, windowInfo.height);
+    Texture finalRenderTexture = Texture(windowInfo.width, windowInfo.height);
     Texture environmentMap = Texture("HDRIs/puresky.hdr");
 
-    renderTexture.BindImageTexture(0, GL_WRITE_ONLY);
+    cumulativeRenderTexture.BindImageTexture(1, GL_READ_WRITE);
+    finalRenderTexture.BindImageTexture(0, GL_WRITE_ONLY);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderTexture.GetID());
+    glBindTexture(GL_TEXTURE_2D, finalRenderTexture.GetID());
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, environmentMap.GetID());
 
-    postProcessShader.SetInt("renderTexture", 0);
+    postProcessShader.SetInt("finalRenderTexture", 0);
     renderShader.SetInt("environmentMap", 1);
     // ---------------------------------
     Camera camera = Camera(45.0f, windowInfo);
+    camera.SetMoveSpeed(40.0f);
     // ---------------------------------
     Volume volume = Volume(glm::vec3(-1.0) * 10.0f, glm::vec3(1.0) * 10.0f);
     renderShader.SetVec3("volume.cornerMin", volume.cornerMin);
@@ -60,6 +63,9 @@ int main()
     float lastTime = 0.0f;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     // ---------------------------------
+
+    float sampleNum = 1.0;
+    glm::mat4 lastCamerModelMatrix = camera.GetModelMatrix();
 
     while (!glfwWindowShouldClose(windowInfo.window)) {
         // Calculate delta time
@@ -71,10 +77,16 @@ int main()
         if (glfwGetKey(windowInfo.window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(windowInfo.window, true);
         camera.ProcessInput(windowInfo, deltaTime);
 
+        if (lastCamerModelMatrix != camera.GetModelMatrix()) {
+            sampleNum = 1.0;
+            lastCamerModelMatrix = camera.GetModelMatrix();
+        }
+
         // Render
         glClear(GL_COLOR_BUFFER_BIT);
         
-        renderShader.SetFloat("time", currTime);
+        renderShader.SetFloat("_Time", currTime);
+        renderShader.SetFloat("_SampleNum", sampleNum);
 
         renderShader.SetVec3("camera.pos", camera.GetPosition());
 
@@ -91,6 +103,8 @@ int main()
         postProcessShader.Use();
         quad.Draw();
         ShaderProgram::Unuse();
+
+        sampleNum++;
 
         // Poll events and swap buffers
         glfwPollEvents();

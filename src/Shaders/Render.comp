@@ -36,7 +36,8 @@ float OpticalDepth(vec3 point, vec3 inDir, float numSteps);
 float Phase_Rayleigh(float cosTheta);
 
 layout(local_size_x = 8, local_size_y = 4) in;
-layout(rgba32f, binding = 0) uniform image2D outputImage;
+layout(rgba32f, binding = 0) uniform image2D finalRenderTexture;
+layout(rgba32F, binding = 1) uniform image2D cumulativeRenderTexture;
 
 const HitInfo NoHit = HitInfo(false, 1./0.);
 
@@ -45,7 +46,8 @@ const float PI = 3.14159265359;
 const float noiseScale = 0.2;
 const float numSteps = 20.0;
 
-uniform float time;
+uniform float _Time;
+uniform float _SampleNum;
 
 uniform sampler2D environmentMap;
 
@@ -57,18 +59,18 @@ const vec3 sunPosition = vec3(10.0);
 
 // ---------------------------------------
 vec2 _Pixel;
-vec2 _OutputImageDims;
+vec2 _RenderTextureDims;
 vec2 _UV;
 
 void main(){
 	_Pixel = gl_GlobalInvocationID.xy;
-	_OutputImageDims = imageSize(outputImage);
-	_UV = (vec2(gl_GlobalInvocationID) + 0.5) / _OutputImageDims;
+	_RenderTextureDims = imageSize(finalRenderTexture);
+	_UV = (vec2(gl_GlobalInvocationID) + 0.5) / _RenderTextureDims;
 
 	vec3 worldUV = camera.pos + 
 	-camera.zAxis * camera.focalLength + 
-	camera.xAxis * (_OutputImageDims.x / 2.0) * (_UV.x * 2.0 - 1.0) +
-	camera.yAxis * (_OutputImageDims.y / 2.0) * (_UV.y * 2.0 - 1.0);
+	camera.xAxis * (_RenderTextureDims.x / 2.0) * (_UV.x * 2.0 - 1.0) +
+	camera.yAxis * (_RenderTextureDims.y / 2.0) * (_UV.y * 2.0 - 1.0);
 
 	Ray ray = Ray(camera.pos, normalize(worldUV - camera.pos));
 
@@ -87,7 +89,7 @@ void main(){
 		vec3 pointToSun = normalize(sunPosition - point);
 
 		vec3 noiseSamplePoint = point - volume.center;	
-		float density = max(0.0, cnoise(noiseSamplePoint * noiseScale + time));
+		float density = max(0.0, cnoise(noiseSamplePoint * noiseScale));
 
 		float inScatterOpticalDepth = OpticalDepth(point, -pointToSun, numSteps);
 		float inScatterPhased = inScatterOpticalDepth * Phase_Rayleigh(dot(pointToSun, -ray.dir));
@@ -100,12 +102,16 @@ void main(){
 		t += stepSize;
 	}
 	
-	imageStore(outputImage, ivec2(_Pixel), vec4(transmittance, 1.0));
+	vec3 currCumulated = _SampleNum == 1.0 ? vec3(0.0) : imageLoad(cumulativeRenderTexture, ivec2(_Pixel)).rgb;
+	vec3 newCumulated = currCumulated + transmittance;
+
+	imageStore(cumulativeRenderTexture, ivec2(_Pixel), vec4(newCumulated, 1.0));
+	imageStore(finalRenderTexture, ivec2(_Pixel), vec4(newCumulated / _SampleNum, 1.0));
 }
 float Rand(){
 	const float MAXHASH = 4294967295.0;
 	const uint _seed = 1;
-    uint value = uint(_Pixel.y * _OutputImageDims.x + _Pixel.x);
+    uint value = uint(_Pixel.y * _RenderTextureDims.x + _Pixel.x);
 
     value *= _seed;
     value ^= 2747636419u;
@@ -238,7 +244,7 @@ float OpticalDepth(vec3 point, vec3 inDir, float numSteps){
 		vec3 point = At(ray, t);
 
 		vec3 noiseSamplePoint = point - volume.center;
-		float density = max(0.0, cnoise(noiseSamplePoint * noiseScale + time));
+		float density = max(0.0, cnoise(noiseSamplePoint * noiseScale));
 
 		opticalDepth += density * stepSize;
 		

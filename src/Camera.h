@@ -27,6 +27,9 @@ public:
 	float GetFocalLength() {
 		return focalLength;
 	}
+	void SetMoveSpeed(float moveSpeed) {
+		this->moveSpeed = moveSpeed;
+	}
 	void ProcessInput(WindowInfo windowInfo, float deltaTime) {
 		GLFWwindow* window = windowInfo.window;
 

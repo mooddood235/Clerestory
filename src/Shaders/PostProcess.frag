@@ -2,7 +2,7 @@
 
 vec3 ACESFilm(vec3 x);
 
-uniform sampler2D renderTexture;
+uniform sampler2D finalRenderTexture;
 
 in vec3 fragPos;
 out vec4 FragColor;
@@ -11,7 +11,7 @@ out vec4 FragColor;
 void main(){
 	vec2 uv = (fragPos.xy + 1.0) / 2.0;
 	
-    vec3 color = textureLod(renderTexture, uv, 0.0).rgb;
+    vec3 color = textureLod(finalRenderTexture, uv, 0.0).rgb;
 
 	FragColor = vec4(ACESFilm(color), 1.0);
 }
