@@ -8,6 +8,7 @@
 #include "WindowInfo.h"
 #include "Texture.h"
 #include "Camera.h"
+#include "Volume.h"
 
 WindowInfo InitGLFW();
 void InitGlAD();
@@ -36,7 +37,7 @@ int main()
     ShaderProgram renderShader = ShaderProgram("src/Shaders/Render.comp");
     // ---------------------------------
     Texture renderTexture = Texture(windowInfo.width, windowInfo.height);
-    Texture environmentMap = Texture("HDRIs/Shelter.hdr");
+    Texture environmentMap = Texture("HDRIs/puresky.hdr");
 
     renderTexture.BindImageTexture(0, GL_WRITE_ONLY);
 
@@ -50,6 +51,11 @@ int main()
     renderShader.SetInt("environmentMap", 1);
     // ---------------------------------
     Camera camera = Camera(45.0f, windowInfo);
+    // ---------------------------------
+    Volume volume = Volume(glm::vec3(-1.0) * 10.0f, glm::vec3(1.0) * 10.0f);
+    renderShader.SetVec3("volume.cornerMin", volume.cornerMin);
+    renderShader.SetVec3("volume.cornerMax", volume.cornerMax);
+    renderShader.SetVec3("volume.center", (volume.cornerMin + volume.cornerMax) / 2.0f);
     // ---------------------------------
     float lastTime = 0.0f;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -68,6 +74,8 @@ int main()
         // Render
         glClear(GL_COLOR_BUFFER_BIT);
         
+        renderShader.SetFloat("time", currTime);
+
         renderShader.SetVec3("camera.pos", camera.GetPosition());
 
         renderShader.SetVec3("camera.xAxis", camera.GetXAxis());
